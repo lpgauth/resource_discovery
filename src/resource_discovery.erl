@@ -288,7 +288,7 @@ get_num_resource(Type) ->
 %%  -contact_node foo@bar.com
 %% </code>
 %%
-%% @spec contact_nodes(Timeout) -> ok | {error, bad_contact_node} | {error, no_contact_node}
+%% @spec contact_nodes(Timeout) -> ok | {error, bad_contact_node}
 %% where
 %%  Timeout = Milliseconds::integer()
 %% @end
@@ -303,14 +303,14 @@ contact_nodes(Timeout) ->
 	end,
     ping_contact_nodes(ContactNodes, Timeout).
 
-%% @spec contact_nodes() -> pong | pang | no_contact_node
+%% @spec contact_nodes() -> pong | pang
 %% @equiv contact_nodes(10000)
 contact_nodes() ->
     contact_nodes(10000).
 
 ping_contact_nodes([], _Timeout) ->
     error_logger:info_msg("No contact node specified. Potentially running in a standalone node", []),
-    {error, no_contact_node};
+    ok;
 ping_contact_nodes(Nodes, Timeout) ->
     Reply = rd_util:do_until(fun(Node) ->
 			     case rd_util:sync_ping(Node, Timeout) of
