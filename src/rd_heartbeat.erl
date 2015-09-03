@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% File    : rd_heartbeat.erl
-%%% Author  : Martin J. Logan 
+%%% Author  : Martin J. Logan
 %%% @doc This does an inform nodes at a specified time interval.
 %%% @end
 %%%-------------------------------------------------------------------
@@ -24,7 +24,7 @@
 
 %%--------------------------------------------------------------------
 %% @doc Starts the server
-%% <pre> 
+%% <pre>
 %% Expects:
 %%  Frequency - The frequency of heartbeats in milliseconds.
 %% </pre>
@@ -34,9 +34,9 @@
 start_link(Frequency) ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [Frequency], []).
 
-%% @equiv start_link(0) 
+%% @equiv start_link(0)
 start_link() ->
-    %% The default value is 0 which indicates no heartbeating. 
+    %% The default value is 0 which indicates no heartbeating.
     {ok,Frequency} = rd_util:get_env(heartbeat_frequency, 60000),
     start_link(Frequency).
 
@@ -53,7 +53,6 @@ start_link() ->
 %%          {stop, Reason}
 %%--------------------------------------------------------------------
 init([Frequency]) ->
-    ok = resource_discovery:contact_nodes(),
     {ok, #state{frequency = Frequency}, Frequency}.
 
 %%--------------------------------------------------------------------
@@ -89,7 +88,6 @@ handle_cast(_Msg, State) ->
 handle_info(timeout, State = #state{frequency = 0}) ->
     {stop, normal, State};
 handle_info(timeout, State = #state{frequency = Frequency}) ->
-    resource_discovery:contact_nodes(),
     resource_discovery:trade_resources(),
     %% Wait for approximately the frequency with a random factor.
     {noreply, State, random:uniform(Frequency div 2) + (Frequency div 2) + Frequency div 3}.

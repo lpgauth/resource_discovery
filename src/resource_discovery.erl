@@ -59,7 +59,6 @@
          trade_resources/0,
          sync_resources/1,
          sync_resources/0,
-         contact_nodes/0,
          rpc_multicall/5,
          rpc_multicall/4,
          rpc_call/5,
@@ -274,57 +273,6 @@ get_num_resource_types() ->
 -spec get_num_resource(resource_type()) -> integer().
 get_num_resource(Type) ->
     rd_core:get_num_resource(Type).
-
-%%------------------------------------------------------------------------------
-%% @doc Contacts resource discoveries initial contact node.
-%%
-%% The initial contact node is specified in configuration with:
-%% <code>
-%%   {contact_nodes, [NodeName]}
-%% </code>
-%% The config can be overridden by specifying a contact node at the command line
-%% like so:
-%% <code>
-%%  -contact_node foo@bar.com
-%% </code>
-%%
-%% @spec contact_nodes(Timeout) -> ok | {error, bad_contact_node}
-%% where
-%%  Timeout = Milliseconds::integer()
-%% @end
-%%------------------------------------------------------------------------------
-contact_nodes(Timeout) ->
-   {ok, ContactNodes} =
-	case lists:keysearch(contact_node, 1, init:get_arguments()) of
-	    {value, {contact_node, [I_ContactNode]}} ->
-		application:set_env(resource_discovery, contact_nodes, [I_ContactNode]),
-		{ok, [list_to_atom(I_ContactNode)]};
-	    _ -> rd_util:get_env(contact_nodes, [node()])
-	end,
-    ping_contact_nodes(ContactNodes, Timeout).
-
-%% @spec contact_nodes() -> pong | pang
-%% @equiv contact_nodes(10000)
-contact_nodes() ->
-    contact_nodes(10000).
-
-ping_contact_nodes([], _Timeout) ->
-    error_logger:info_msg("No contact node specified. Potentially running in a standalone node", []),
-    ok;
-ping_contact_nodes(Nodes, Timeout) ->
-    Reply = rd_util:do_until(fun(Node) ->
-			     case rd_util:sync_ping(Node, Timeout) of
-				 pong -> true;
-				 pang ->
-				     error_logger:info_msg("ping contact node at ~p failed", [Node]),
-				     false
-			     end
-		     end,
-		     Nodes),
-    case Reply of
-	false -> {error, bad_contact_node};
-	true -> ok
-    end.
 
 %%------------------------------------------------------------------------------
 %% @doc Execute an rpc on a cached resource.  If the result of the rpc is {badrpc, reason} the
