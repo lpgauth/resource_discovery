@@ -156,6 +156,8 @@ get_responses(Pids, Timeout) ->
 %% @end
 %%------------------------------------------------------------------------------
 -spec add_target_resource_types([resource_type()]) -> ok.
+add_target_resource_types([]) ->
+    ok;
 add_target_resource_types([H|_] = TargetTypes) when is_atom(H) ->
     rd_core:store_target_resource_types(TargetTypes).
 
