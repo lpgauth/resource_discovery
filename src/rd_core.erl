@@ -1,5 +1,5 @@
 %%%-------------------------------------------------------------------
-%%% @author Martin Logan 
+%%% @author Martin Logan
 %%% @copyright 2008 Erlware
 %%% @doc
 %%%   Cache and distribute resources.
@@ -52,7 +52,7 @@
 
 -include("../include/resource_discovery.hrl").
 
--define(SERVER, ?MODULE). 
+-define(SERVER, ?MODULE).
 
 -record(state, {}).
 
@@ -92,7 +92,7 @@ make_callbacks(NewResources) ->
 %%--------------------------------------------------------------------
 -spec filter_resource_tuples_by_types([resource_type()], [resource_tuple()]) -> [resource_tuple()].
 filter_resource_tuples_by_types(TargetTypes, Resources) ->
-    Fun = 
+    Fun =
 	fun({Type, _Instance} = Resource, Acc) ->
 		case lists:member(Type, TargetTypes) of
 		    true  -> [Resource|Acc];
@@ -182,7 +182,7 @@ trade_resources() ->
 -spec round_robin_get(resource_type()) -> {ok, resource()} | {error, not_found}.
 round_robin_get(Type) ->
     gen_server:call(?SERVER, {round_robin_get, Type}).
- 
+
 %%--------------------------------------------------------------------
 %% @doc
 %% Gets all cached resources of a given type
@@ -327,14 +327,11 @@ handle_cast(trade_resources, State) ->
     rd_store:delete_deleted_resource_tuple(),
     {noreply, State};
 handle_cast({trade_resources, {ReplyTo, {Remotes, RemoteDeletedTuples}}}, State) ->
-    error_logger:info_msg("trade_resources, got remotes ~p: deleted: ~p", [Remotes, RemoteDeletedTuples]),
     Locals = rd_store:get_local_resource_tuples(),
     LocalsDeleted = rd_store:get_deleted_resource_tuples(),
     TargetTypes = rd_store:get_target_resource_types(),
     FilteredRemotes = filter_resource_tuples_by_types(TargetTypes, Remotes),
-    error_logger:info_msg("got remotes and filtered ~p", [FilteredRemotes]),
     rd_store:store_resource_tuples(FilteredRemotes),
-    error_logger:info_msg("trade_resources, deleting ~p", [RemoteDeletedTuples]),
     [rd_store:delete_resource_tuple(DR) || DR <- RemoteDeletedTuples],
     make_callbacks(FilteredRemotes),
     reply(ReplyTo, {Locals, LocalsDeleted}),
